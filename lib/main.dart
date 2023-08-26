@@ -1,5 +1,8 @@
+import 'package:fluentui_icons/fluentui_icons.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:algolia_helper_flutter/algolia_helper_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 void main() {
@@ -16,7 +19,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter x Algolia',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme:
+            ColorScheme.fromSeed(seedColor: Colors.blueAccent.shade700),
+        textTheme: TextTheme(
+            bodyMedium:
+                GoogleFonts.quicksand(fontSize: 16, color: Colors.grey[900])),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -121,15 +128,26 @@ class _MyHomePageState extends State<MyHomePage> {
         pagingController: _pagingController,
         builderDelegate: PagedChildBuilderDelegate<Product>(
             noItemsFoundIndicatorBuilder: (_) => const Center(
-                  child: Text('No results foundt'),
+                  child: Text('No results found'),
                 ),
             itemBuilder: (_, item, __) => Container(
-                  color: Colors.white,
-                  height: 80,
+                  margin: const EdgeInsets.symmetric(vertical: 7.5),
                   padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(7.5),
+                  ),
                   child: Row(
                     children: [
-                      SizedBox(width: 50, child: Image.network(item.image)),
+                      Container(
+                        height: 100,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Image.network(item.image),
+                      ),
                       const SizedBox(width: 20),
                       Expanded(child: Text(item.name))
                     ],
@@ -138,7 +156,13 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
   Widget _filters(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text('Filters')),
+      backgroundColor: Colors.blueAccent.shade400,
+      appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.blueAccent.shade400,
+          centerTitle: true,
+          title: Text('Filters',
+              style: GoogleFonts.quicksand(color: Colors.grey[100]))),
       body: StreamBuilder<List<SelectableItem<Facet>>>(
           stream: _facetList.facets,
           builder: (context, snapshot) {
@@ -152,9 +176,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 itemBuilder: (_, index) {
                   final selectableFacet = selectableFacets[index];
                   return CheckboxListTile(
+                      activeColor: Colors.white,
+                      checkColor: Colors.blueAccent.shade700,
                       value: selectableFacet.isSelected,
                       title: Text(
-                          '${selectableFacet.item.value} (${selectableFacet.item.count})'),
+                          '${selectableFacet.item.value} (${selectableFacet.item.count})',
+                          style:
+                              GoogleFonts.quicksand(color: Colors.grey[100])),
                       onChanged: (_) {
                         _facetList.toggle(selectableFacet.item.value);
                       });
@@ -164,33 +192,45 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _mainScaffoldKey,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('Algolia & Flutter'),
+        backgroundColor: Colors.grey[100],
+        centerTitle: true,
+        elevation: 0,
+        title: Text('Algolia & Flutter', style: GoogleFonts.quicksand()),
         actions: [
           IconButton(
+            color: Colors.blueAccent.shade700,
             onPressed: () => _mainScaffoldKey.currentState?.openEndDrawer(),
-            icon: const Icon(Icons.filter_list_sharp),
+            icon: const Icon(
+              Icons.filter_list_sharp,
+            ),
           )
         ],
       ),
       endDrawer: Drawer(
         child: _filters(context),
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            SizedBox(
-              height: 44,
-              child: TextField(
-                controller: _searchTextController,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Enter a search term',
-                  prefixIcon: Icon(Icons.search),
-                ),
-              ),
+            CupertinoSearchTextField(
+              controller: _searchTextController,
+              onSuffixTap: () {
+                _searchTextController.clear();
+              },
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              backgroundColor: Colors.grey[200],
+              borderRadius: BorderRadius.circular(15),
+              prefixIcon: Icon(FluentSystemIcons.ic_fluent_search_regular,
+                  size: 26, color: Colors.grey[900]),
+              suffixIcon: const Icon(
+                  FluentSystemIcons.ic_fluent_dismiss_circle_regular),
+              placeholder: 'Search products...',
+              placeholderStyle:
+                  GoogleFonts.quicksand(fontSize: 14, color: Colors.grey[600]),
             ),
             StreamBuilder<SearchMetadata>(
                 stream: _searchMetadata,
@@ -200,7 +240,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text('${snapshot.data!.nbHits} hits'),
+                    child: Text('${snapshot.data!.nbHits} results',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent.shade700)),
                   );
                 }),
             Expanded(child: _hits(context))
